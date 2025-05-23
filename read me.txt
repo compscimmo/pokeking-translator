@@ -2,15 +2,19 @@ I am making personal edit to this translator:
 github.com/WileytheBANG/pokeking-translator 
 
 link to my GitHub with all the files:
+https://github.com/compscimmo/pokeking-translator.git
 https://github.com/compscimmo/pokeking.git
 
-i copy and pasted the broswer-polyfill.min.js from here into my own file:
+I copy and pasted the broswer-polyfill.min.js from here into my own file:
 https://gist.github.com/sriharrsha/3b8fe6a989e55f21d31824c7f31be61f 
 
 Installation & Usage Guide
+
+✅ Install the Extension 
+
 Firefox: open the xpi with firefox
 
-✅ Install the Extension (Edge/Chrome)
+Edge/Chrome:
 Download or clone this repository to your computer.
 
 Open your browser and go to:
