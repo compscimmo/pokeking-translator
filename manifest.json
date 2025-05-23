@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "Pokeking Translator",
+  "version": "1.3",
+  "description": "Auto-replaces keywords on pokeking.icu.",
+  "icons": {
+    "16": "icons/slax16.png",
+    "48": "icons/slax48.png",
+    "128": "icons/slax128.png"
+  },
+  "permissions": [],
+  "host_permissions": [
+    "http://www.pokeking.icu/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["http://www.pokeking.icu/*"],
+      "js": ["browser-polyfill.min.js", "content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["dictionary.json"],
+      "matches": ["http://www.pokeking.icu/*"]
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+    "id": "pokeking-translator-jassimp-ww@github.com"    
+  }
+  }
+}
