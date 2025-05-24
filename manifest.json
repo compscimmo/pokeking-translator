@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Pokeking Translator",
-  "version": "1.3",
-  "description": "Auto-replaces keywords on pokeking.icu.",
+  "version": "1.3.3",
+  "description": "Auto-replaces keywords on all sites. built solely for pokeking",
   "icons": {
     "16": "icons/slax16.png",
     "48": "icons/slax48.png",
@@ -10,11 +10,11 @@
   },
   "permissions": [],
   "host_permissions": [
-    "http://www.pokeking.icu/*"
+    "<all_urls>"
   ],
   "content_scripts": [
     {
-      "matches": ["http://www.pokeking.icu/*"],
+      "matches": ["<all_urls>"],
       "js": ["browser-polyfill.min.js", "content.js"],
       "run_at": "document_idle"
     }
@@ -22,7 +22,7 @@
   "web_accessible_resources": [
     {
       "resources": ["dictionary.json"],
-      "matches": ["http://www.pokeking.icu/*"]
+      "matches": ["<all_urls>"]
     }
   ],
   "browser_specific_settings": {
