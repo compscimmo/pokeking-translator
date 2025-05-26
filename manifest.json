@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Pokeking Translator",
-  "version": "4.0",
+  "version": "4.1",
   "description": "Auto-replaces keywords on all sites. built solely for pokeking",
   "icons": {
     "16": "icons/slax16.png",
