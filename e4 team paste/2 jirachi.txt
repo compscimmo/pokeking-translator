@@ -1,0 +1,68 @@
+https://pokepast.es/0a1b6cd8b30b98d7
+
+61A55F7ED537C94F367D327BBF6073C6 
+
+Jirachi @ Choice Scarf
+Level: 100
+Timid Nature
+Ability: Serene Grace
+EVs: 236 HP / 40 Def / 78 SpA / 60 SpD / 96 Spe
+IVs: 0 Atk
+- Trick
+- Thunderbolt
+- Thunder
+- Stealth Rock
+
+Jirachi @ Choice Scarf
+Level: 100
+Timid Nature
+Ability: Serene Grace
+EVs: 236 HP / 40 Def / 78 SpA / 60 SpD / 96 Spe
+IVs: 0 Atk
+- Trick
+- Thunderbolt
+- Thunder
+- Stealth Rock
+
+Garchomp @ Air Balloon
+Level: 100
+Adamant Nature
+Ability: Sand Veil
+EVs: 194 HP / 252 Atk / 64 Spe
+- Earthquake
+- Dual Chop
+- Swords Dance
+- Hone Claws
+
+Excadrill @ Air Balloon
+Level: 100
+Adamant Nature
+Ability: Mold Breaker
+EVs: 54 HP / 252 Atk / 202 Spe
+- Stealth Rock
+- Earthquake
+- Iron Head
+- Swords Dance
+
+Chandelure @ Spell Tag
+Level: 100
+Modest Nature
+Ability: Flash Fire
+EVs: 6 HP / 252 SpA / 252 Spe
+IVs: 0 Atk
+- Calm Mind
+- Shadow Ball
+- Flamethrower
+- Hidden Power Ice
+
+Hydreigon @ Dragon Fang
+Level: 100
+Modest Nature
+Ability: Levitate
+EVs: 134 HP / 252 SpA / 124 Spe
+IVs: 0 Atk
+- Nasty Plot
+- Stealth Rock
+- Dragon Pulse
+- Flamethrower
+
