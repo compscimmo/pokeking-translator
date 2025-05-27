@@ -3,7 +3,6 @@ github.com/WileytheBANG/pokeking-translator
 
 link to my GitHub with all the files:
 https://github.com/compscimmo/pokeking-translator.git
-https://github.com/compscimmo/pokeking.git
 
 I copy and pasted the broswer-polyfill.min.js from here into my own file:
 https://gist.github.com/sriharrsha/3b8fe6a989e55f21d31824c7f31be61f 
