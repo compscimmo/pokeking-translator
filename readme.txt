@@ -11,7 +11,7 @@ Installation & Usage Guide by WileytheBang:
 
 ✅ Install the Extension 
 
-Firefox: open the xpi with firefox
+Firefox: https://github.com/compscimmo/pokekingfirefox
 
 Edge/Chrome:
 Download or clone this repository to your computer.
