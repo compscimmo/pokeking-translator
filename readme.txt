@@ -11,7 +11,15 @@ Installation & Usage Guide by WileytheBang:
 
 ✅ Install the Extension 
 
-Firefox: https://github.com/compscimmo/pokekingfirefox
+Firefox 
+PC:
+1. download pokekingtranslatorwwjt-4.3.1.xpi
+2. open in xpi file in firefox
+android:
+1. download the pokekingtranslatorwwjt-4.3.1.xpi file
+2. download firefox nightly or beta
+3. enabling the debug menu: go to settings > about firefox (or about firefox nightly/beta) and tap the firefox logo five times. this will enable a "debug menu."
+4. go back to the main settings screen, find option install add-on from file and select the xpi file
 
 Edge/Chrome:
 Download or clone this repository to your computer.
