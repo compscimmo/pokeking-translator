@@ -11,7 +11,7 @@ Installation & Usage Guide by WileytheBang:
 
 ✅ Install the Extension 
 
-Firefox: https://github.com/compscimmo/pokekingfirefox
+Firefox open: pokekingtranslatorwwjt-4.3.1.xpi
 
 Edge/Chrome:
 Download or clone this repository to your computer.
