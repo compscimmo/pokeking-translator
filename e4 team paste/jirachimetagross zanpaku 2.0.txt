@@ -1,13 +1,14 @@
-https://pokepast.es/71e964a8fd5007ad
+https://pokepast.es/45a940722b39b258
 
 6E7B4D48DF6146F6ADF4520C3ECAA3ED 
+
 
 
 Jirachi @ Choice Scarf  
 Ability: Serene Grace  
 Tera Type: Steel  
 EVs: 238 HP / 156 SpD / 116 Spe  
-Timid Nature  
+Modest Nature  
 IVs: 0 Atk  
 - Trick  (max. pp)
 - Stealth Rock  
@@ -29,7 +30,7 @@ Hydreigon @ Dragon Fang
 Ability: Levitate  
 Tera Type: Dark  
 EVs: 134 HP / 252 SpA / 124 Spe  
-Timid Nature  
+Modest Nature  
 IVs: 0 Atk  
 - Nasty Plot  
 - Dragon Pulse  (max. pp)
@@ -62,7 +63,7 @@ Chandelure @ Spell Tag
 Ability: Flash Fire  
 Tera Type: Ghost  
 EVs: 6 Def / 252 SpA / 252 Spe  
-Serious Nature  
+Modest Nature  
 IVs: 0 Atk  
 - Calm Mind  
 - Hidden Power [Ice]  
