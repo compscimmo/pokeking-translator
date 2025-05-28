@@ -11,7 +11,8 @@ Installation & Usage Guide by WileytheBang:
 
 ✅ Install the Extension 
 
-Firefox 
+Firefox
+alternative link: https://buzzheavier.com/cxf9tuq9mt7x 
 PC:
 1. download pokekingtranslatorwwjt-4.3.1.xpi
 2. open in xpi file in firefox
