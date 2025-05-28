@@ -1,5 +1,7 @@
 I am making personal edit to this translator:
 github.com/WileytheBANG/pokeking-translator 
+discord: wilxun
+ign: jassimp
 
 link to my GitHub with all the files:
 https://github.com/compscimmo/pokeking-translator.git
