@@ -1,17 +1,20 @@
 I am making personal edit to this translator:
 github.com/WileytheBANG/pokeking-translator 
+discord: wilxun
+ign: jassimp
 
 link to my GitHub with all the files:
 https://github.com/compscimmo/pokeking-translator.git
 
 I copy and pasted the broswer-polyfill.min.js from here into my own file:
-https://gist.github.com/sriharrsha/3b8fe6a989e55f21d31824c7f31be61f 
+https://app.unpkg.com/webextension-polyfill@0.12.0/files/dist
 
 Installation & Usage Guide by WileytheBang:
 
 ✅ Install the Extension 
 
-Firefox 
+Firefox
+alternative link: https://buzzheavier.com/cxf9tuq9mt7x 
 PC:
 1. download pokekingtranslatorwwjt-4.3.1.xpi
 2. open in xpi file in firefox
