@@ -7,7 +7,7 @@ link to my GitHub with all the files:
 https://github.com/compscimmo/pokeking-translator.git
 
 I copy and pasted the broswer-polyfill.min.js from here into my own file:
-https://gist.github.com/sriharrsha/3b8fe6a989e55f21d31824c7f31be61f 
+https://app.unpkg.com/webextension-polyfill@0.12.0/files/dist
 
 Installation & Usage Guide by WileytheBang:
 
