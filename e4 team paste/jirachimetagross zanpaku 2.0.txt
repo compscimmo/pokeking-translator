@@ -1,4 +1,4 @@
-https://pokepast.es/45a940722b39b258
+https://pokepast.es/83f2118e3206df57 
 
 6E7B4D48DF6146F6ADF4520C3ECAA3ED 
 
@@ -38,7 +38,7 @@ IVs: 0 Atk
 - Stealth Rock
 
 Haxorus @ Air Balloon  
-Ability: Rivalry  
+Ability: Mold Breaker
 Tera Type: Dragon  
 EVs: 114 HP / 252 Atk / 144 Spe  
 Adamant Nature  
