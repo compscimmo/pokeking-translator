@@ -2875,7 +2875,7 @@
     "贝壳": "cloyster ",
     "冲撞": "collision ",
     "配置": "combo/build ",
-    "司令": "commander ",
+    "司令": "bisharp ",
     "确队": "confirm team ",
     "继续": "continue ",
     "连续": "continuously ",
@@ -3729,5 +3729,8 @@
     "攻": "x atk ",
     "防": "x def ",
     "你": "you",
+    "貘人":"hypno ",
+    "貘":"hypno ",
+    "馍人":"hypno ",
     "青": "young "
 }
