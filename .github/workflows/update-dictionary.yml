@@ -21,13 +21,19 @@ jobs:
 
     - name: Generate dictionary.json
       run: |
-        mkdir -p pokeking-translator # Ensure the directory exists
+        mkdir -p pokeking-translator 
         curl -o pokeking-translator/dictionary.json "https://script.google.com/u/0/home/projects/1eRuTewaLfbH2mm0Ea9BbnwO_KRRHNrl11kqetuzSVCbA-PqYWkdr283T/edit"
 
     - name: Commit and push changes
       run: |
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
-        git update-index --refresh
-        git diff-index --quiet HEAD -- || (git add pokeking-translator/dictionary.json && git commit -m "Automated dictionary update")
-        git push
+        git update-index --refresh # Checks if there are any changes
+        # Only add and commit if there are actual changes
+        if ! git diff-index --quiet HEAD --; then
+          git add pokeking-translator/dictionary.json
+          git commit -m "Automated dictionary update"
+          git push
+        else
+          echo "No changes to dictionary.json, skipping commit."
+        fi
