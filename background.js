@@ -1,56 +1,57 @@
-const DICTIONARY_URL = "https://your-dictionary-host.com/dictionary.json"; // Replace with your actual URL
+const DICTIONARY_URL = "https://compscimmo.github.io/pokeking-translator/dictionary.json"; // Your GitHub Pages URL
 const DICTIONARY_STORAGE_KEY = "myDictionary";
-const UPDATE_INTERVAL_MS = 60 * 60 * 1000; // Update every hour (adjust as needed)
+const UPDATE_INTERVAL_MINUTES = 60; // Update every hour
 
 async function fetchAndUpdateDictionary() {
-  try {
-    const response = await fetch(DICTIONARY_URL);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    console.log("Background: Attempting to fetch and update dictionary...");
+    try {
+        const response = await fetch(DICTIONARY_URL);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const dictionary = await response.json();
+
+        // Store the dictionary in local storage
+        await chrome.storage.local.set({ [DICTIONARY_STORAGE_KEY]: dictionary });
+        console.log("Background: Dictionary updated from remote source.");
+
+        // Optionally, store the last updated timestamp
+        await chrome.storage.local.set({ lastDictionaryUpdate: Date.now() });
+
+    } catch (error) {
+        console.error("Background: Failed to fetch or update dictionary:", error);
     }
-    const dictionary = await response.json();
+}
 
-    // Store the dictionary in local storage
-    await chrome.storage.local.set({ [DICTIONARY_STORAGE_KEY]: dictionary });
-    console.log("Dictionary updated from remote source.");
-
-    // Optionally, store the last updated timestamp
-    await chrome.storage.local.set({ lastDictionaryUpdate: Date.now() });
-
-  } catch (error) {
-    console.error("Failed to fetch or update dictionary:", error);
-  }
+async function getDictionary() {
+    const result = await chrome.storage.local.get(DICTIONARY_STORAGE_KEY);
+    return result[DICTIONARY_STORAGE_KEY] || {}; // Return an empty object if not found
 }
 
 // Run on extension installation/update
 chrome.runtime.onInstalled.addListener(() => {
-  fetchAndUpdateDictionary();
+    console.log("Background: Extension installed or updated. Fetching dictionary now.");
+    fetchAndUpdateDictionary();
 });
 
-// Periodically run the update function
-// For Manifest V3, you'd use alarms or a more sophisticated background process
-// This is a simplified example for demonstration; proper periodic tasks in MV3
-// might involve chrome.alarms or more complex service worker lifecycle management.
-chrome.alarms.create('updateDictionary', { periodInMinutes: 60 }); // Runs every 60 minutes
+// Periodically run the update function using chrome.alarms
+// For Manifest V3, this is the recommended way for periodic tasks.
+chrome.alarms.create('updateDictionary', { periodInMinutes: UPDATE_INTERVAL_MINUTES });
 
 chrome.alarms.onAlarm.addListener((alarm) => {
-  if (alarm.name === 'updateDictionary') {
-    fetchAndUpdateDictionary();
-  }
+    if (alarm.name === 'updateDictionary') {
+        console.log("Background: Alarm triggered. Fetching dictionary.");
+        fetchAndUpdateDictionary();
+    }
 });
 
-// Example of how other parts of your extension would access the dictionary
-async function getDictionary() {
-  const result = await chrome.storage.local.get(DICTIONARY_STORAGE_KEY);
-  return result[DICTIONARY_STORAGE_KEY] || [];
-}
-
-// You can expose this function to other parts of your extension if needed
-// For example, if a popup needs to display dictionary size, or a content script
-// needs to check words.
-// chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-//   if (request.action === "getDictionary") {
-//     getDictionary().then(dict => sendResponse({ dictionary: dict }));
-//     return true; // Indicates async response
-//   }
-// });
+// Listen for messages from content scripts to provide the dictionary
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === "getDictionary") {
+        console.log("Background: Received 'getDictionary' request from content script.");
+        getDictionary().then(dict => {
+            sendResponse({ dictionary: dict });
+        });
+        return true; // Indicates async response
+    }
+});

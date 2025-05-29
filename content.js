@@ -1,4 +1,4 @@
-// content.js - Pokeking Translator (Final Version with Injected Script)
+// content.js - Pokeking Translator (Final Version with Injected Script and Background Dictionary)
 
 // This content script runs in an isolated world, handling UI for translation
 // and communicating with an injected script that overrides native functions.
@@ -8,33 +8,6 @@ async function initializePokekingTranslator() {
     console.log("Pokeking Translator: Content script running (Final Version)");
 
     // --- Constants ---
-    // Define the URL for your dictionary hosted on GitHub Pages
-    const GITHUB_DICTIONARY_URL = "https://compscimmo.github.io/pokeking-translator/dictionary.json";
-
-    // Ensure browser object is available before attempting to use it
-    // (This line is still useful for general browser API usage, but not for the dictionary fetch itself)
-    const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
-
-    const DICT = await fetch(GITHUB_DICTIONARY_URL) // <--- THIS IS THE KEY CHANGE
-        .then(res => {
-            if (!res.ok) {
-                // Throw an error if the HTTP response status is not 2xx
-                throw new Error(`HTTP error! status: ${res.status}`);
-            }
-            return res.json();
-        })
-        .catch(error => {
-            console.error("Pokeking Translator: Failed to load dictionary from GitHub Pages:", error);
-            // Optionally, you might want to try loading a fallback local dictionary here
-            // if the remote one fails, but for now, we return an empty object.
-            return {};
-        });
-    console.log("Pokeking Translator: Loaded dictionary:", DICT);
-
-    if (Object.keys(DICT).length === 0) {
-        console.warn("Pokeking Translator: Dictionary is empty or failed to load. Translation will not occur.");
-    }
-
     const POKEKING_TRANSLATED_CLASS = "pokeking-translated";
     const POKEKING_WRAPPER_CLASS = "pokeking-translated-wrapper";
     const POKEKING_BUTTON_CLASS = "pokeking-toggle-button";
@@ -48,12 +21,26 @@ async function initializePokekingTranslator() {
 
     let isShowingOriginal = false; // Track whether we're showing original or translated text
 
-    // Pre-compile regex for efficient keyword replacement
-    const escapedKeys = Object.keys(DICT)
-        .sort((a, b) => b.length - a.length) // Sort by length descending for greedy matching
-        .map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    // --- Get the Dictionary from the Background Script ---
+    const DICT = await chrome.runtime.sendMessage({ action: "getDictionary" })
+        .then(response => {
+            console.log("Pokeking Translator: Received dictionary from background script.");
+            return response.dictionary || {}; // Ensure it's an object, even if empty
+        })
+        .catch(error => {
+            console.error("Pokeking Translator: Failed to get dictionary from background:", error);
+            return {}; // Return empty dictionary on error to prevent script from crashing
+        });
 
-    const keywordRegex = escapedKeys.length > 0 ? new RegExp(`(${escapedKeys.join("|")})`, "g") : null;
+    if (Object.keys(DICT).length === 0) {
+        console.warn("Pokeking Translator: Dictionary is empty or failed to load. Translation will not occur.");
+    }
+
+    // Pre-compile regex for efficient keyword replacement
+    // Only compile if DICT is not empty
+    const keywordRegex = Object.keys(DICT).length > 0
+        ? new RegExp(`(${Object.keys(DICT).sort((a, b) => b.length - a.length).map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join("|")})`, "g")
+        : null;
     console.log("Pokeking Translator: Keyword Regex:", keywordRegex);
 
 
@@ -100,8 +87,8 @@ async function initializePokekingTranslator() {
      * @param {Node[]} nodes - An array of text nodes to process.
      */
     function replaceKeywords(nodes) {
-        if (!keywordRegex) {
-            console.warn("Pokeking Translator: No keyword regex available, skipping keyword replacement.");
+        if (!keywordRegex || Object.keys(DICT).length === 0) {
+            console.warn("Pokeking Translator: No keyword regex or empty dictionary available, skipping keyword replacement.");
             return;
         }
 
@@ -109,10 +96,13 @@ async function initializePokekingTranslator() {
         nodes.forEach(node => {
             const originalText = node.nodeValue;
 
+            // Only process if the text contains potential keywords
             if (!keywordRegex.test(originalText)) {
                 return;
             }
 
+            // Reset lastIndex for global regex in case it was used before
+            keywordRegex.lastIndex = 0;
             const translatedText = originalText.replace(keywordRegex, match => DICT[match] || match);
 
             if (translatedText === originalText) {
@@ -123,7 +113,7 @@ async function initializePokekingTranslator() {
             span.className = POKEKING_TRANSLATED_CLASS;
             span.dataset[POKEKING_ORIGINAL_DATA_ATTR] = originalText;
             span.dataset[POKEKING_TRANSLATED_DATA_ATTR] = translatedText;
-            span.textContent = translatedText;
+            span.textContent = translatedText; // Initially show translated text
 
             const wrapper = document.createElement("span");
             wrapper.className = POKEKING_WRAPPER_CLASS;
@@ -231,6 +221,7 @@ async function initializePokekingTranslator() {
         }
 
         const messageElement = alertDiv.querySelector(`.${CUSTOM_ALERT_MESSAGE_CLASS}`);
+        // Translate the alert message using the fetched dictionary
         const translatedMessage = DICT[originalMessage.trim()] || originalMessage;
         messageElement.textContent = translatedMessage;
 
@@ -240,7 +231,9 @@ async function initializePokekingTranslator() {
 
     // --- Core Logic: Inject the script that performs the actual alert override into the page's context ---
     const s = document.createElement('script');
-    s.src = browserAPI.runtime.getURL('injected_script.js'); // Use browserAPI for consistency
+    // Ensure browser object is available for getURL
+    const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
+    s.src = browserAPI.runtime.getURL('injected_script.js');
     s.onload = function() {
         this.remove();
         console.log("Pokeking Translator: Injected script loaded and removed.");
@@ -295,13 +288,17 @@ async function initializePokekingTranslator() {
             isShowingOriginal = !isShowingOriginal;
             console.log(`Pokeking Translator: Toggle button clicked. isShowingOriginal: ${isShowingOriginal}`);
 
+            // This logic is slightly adjusted:
+            // When switching to original, we just toggle display.
+            // When switching back to translated, we re-run replaceKeywords
+            // to catch any new elements and then toggle display.
             if (isShowingOriginal) {
                 toggleTranslationDisplay();
                 btn.textContent = "Show Translated";
             } else {
-                console.log("Pokeking Translator: Switching back to translated. Re-running replaceKeywords for full page.");
-                replaceKeywords(getAllStaticTextElements());
-                toggleTranslationDisplay();
+                // When switching back to translated, ensure newly added elements are translated
+                replaceKeywords(getAllStaticTextElements()); // Re-run translation on full page
+                toggleTranslationDisplay(); // Apply current display state (translated)
                 btn.textContent = "Show Original";
             }
         };
@@ -312,12 +309,14 @@ async function initializePokekingTranslator() {
     function initializeTranslationAndObserver() {
         console.log("Pokeking Translator: Initializing translation and observer setup.");
 
+        // Initial translation after a short delay to allow DOM to settle
         setTimeout(() => {
             console.log("Pokeking Translator: Running initial keyword replacement (after 500ms delay).");
             replaceKeywords(getAllStaticTextElements());
         }, 500);
 
         const observer = new MutationObserver((mutations) => {
+            // If showing original, do not translate new content
             if (isShowingOriginal) {
                 return;
             }
@@ -327,9 +326,11 @@ async function initializePokekingTranslator() {
                 if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
                     for (const node of mutation.addedNodes) {
                         if (node.nodeType === Node.TEXT_NODE) {
-                            if (!node.parentNode || node.parentNode.id === CUSTOM_ALERT_ID || node.parentNode.closest(`#${CUSTOM_ALERT_ID}`)) continue;
+                            // Ensure parent exists and is not within our alert or wrapper
+                            if (!node.parentNode || node.parentNode.id === CUSTOM_ALERT_ID || node.parentNode.closest(`#${CUSTOM_ALERT_ID}`) || node.parentNode.classList?.contains(POKEKING_WRAPPER_CLASS)) continue;
                             nodesToTranslate.push(node);
                         } else if (node.nodeType === Node.ELEMENT_NODE) {
+                            // Exclude our own elements and their children
                             if (node.classList?.contains(POKEKING_WRAPPER_CLASS) || node.classList?.contains(POKEKING_BUTTON_CLASS) || node.id === CUSTOM_ALERT_ID || node.closest(`#${CUSTOM_ALERT_ID}`)) {
                                 continue;
                             }
@@ -348,7 +349,7 @@ async function initializePokekingTranslator() {
             observer.observe(document.body, {
                 childList: true,
                 subtree: true,
-                characterData: false,
+                characterData: false, // We only care about text nodes and element changes
                 attributes: false
             });
             console.log("Pokeking Translator: MutationObserver active on document.body.");
