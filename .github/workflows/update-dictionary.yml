@@ -5,27 +5,21 @@ on:
     branches:
       - main # Trigger when you push to the main branch
   schedule:
-    # Runs daily at 6:35 AM UTC (10:35 PM PDT / 11:35 PM PST)
-    # The previous cron '25 6 * * *' was 6:25 AM UTC (10:25 PM PST)
-    # You had a duplicate line. This one (35 6) will override if it's the last one read.
-    # I've chosen 35 to resolve the conflict.
+    # Runs daily at 6:35 AM UTC (11:35 PM PDT / 10:35 PM PST)
     - cron: '35 6 * * *' 
   workflow_dispatch: {} # Allows manual triggering from the GitHub Actions UI
 
 jobs:
   update_dictionary:
     runs-on: ubuntu-latest
+    permissions: # <--- ADD THIS BLOCK
+      contents: write # <--- AND THIS LINE
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # The 'Set up Node.js' and 'Install dependencies' steps are removed
-    # because they are not needed for just fetching with 'curl'.
-    # You had conflicting uncommented and commented versions of these.
-
     - name: Generate dictionary.json
-      # This curl command is the core of fetching from your Google Apps Script web app
       run: |
         mkdir -p pokeking-translator # Ensure the directory exists
         curl -o pokeking-translator/dictionary.json "https://script.google.com/macros/s/AKfycbwec1juqGwtrBroLbUEz3tACHXrjS7JKjHhPY7C3Puq_uHohV5bZWduQbPzqG1kclVc/exec"
@@ -34,12 +28,6 @@ jobs:
       run: |
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
-        # Check for changes before adding and committing
         git update-index --refresh
         git diff-index --quiet HEAD -- || (git add pokeking-translator/dictionary.json && git commit -m "Automated dictionary update")
         git push
-      # IMPORTANT: Ensure this pushes to the correct branch for GitHub Pages.
-      # By default, git push will push to the branch checked out by actions/checkout, which is 'main'.
-      # If your Pages branch is different (e.g., gh-pages), you'd need:
-      # git push origin HEAD:gh-pages
-      # However, if your Pages branch *is* 'main', then `git push` is fine.
