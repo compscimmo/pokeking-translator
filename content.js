@@ -8,12 +8,26 @@ async function initializePokekingTranslator() {
     console.log("Pokeking Translator: Content script running (Final Version)");
 
     // --- Constants ---
+    // Define the URL for your dictionary hosted on GitHub Pages
+    const GITHUB_DICTIONARY_URL = "https://compscimmo.github.io/pokeking-translator/dictionary.json";
+
     // Ensure browser object is available before attempting to use it
-    const DICT = await fetch(browser.runtime.getURL("dictionary.json"))
-        .then(res => res.json())
+    // (This line is still useful for general browser API usage, but not for the dictionary fetch itself)
+    const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
+
+    const DICT = await fetch(GITHUB_DICTIONARY_URL) // <--- THIS IS THE KEY CHANGE
+        .then(res => {
+            if (!res.ok) {
+                // Throw an error if the HTTP response status is not 2xx
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            return res.json();
+        })
         .catch(error => {
-            console.error("Pokeking Translator: Failed to load dictionary.json", error);
-            return {}; // Return empty object to prevent script from crashing
+            console.error("Pokeking Translator: Failed to load dictionary from GitHub Pages:", error);
+            // Optionally, you might want to try loading a fallback local dictionary here
+            // if the remote one fails, but for now, we return an empty object.
+            return {};
         });
     console.log("Pokeking Translator: Loaded dictionary:", DICT);
 
@@ -226,7 +240,7 @@ async function initializePokekingTranslator() {
 
     // --- Core Logic: Inject the script that performs the actual alert override into the page's context ---
     const s = document.createElement('script');
-    s.src = browser.runtime.getURL('injected_script.js');
+    s.src = browserAPI.runtime.getURL('injected_script.js'); // Use browserAPI for consistency
     s.onload = function() {
         this.remove();
         console.log("Pokeking Translator: Injected script loaded and removed.");
