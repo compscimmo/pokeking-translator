@@ -36,12 +36,41 @@ jobs:
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
         
-        # Check for changes more verbosely and act based on the exit code
+        # Ensure consistent line endings before checking for diffs
+        # This will convert the file to LF if it's CRLF, making Git happy
+        # And it will also ensure Git considers it binary-safe for diffing if needed
+        # (though JSON is text, sometimes tools add BOM or other subtle things)
+        unix2dos pokeking-translator/dictionary.json || true # Try converting to CRLF just in case
+        dos2unix pokeking-translator/dictionary.json || true # Convert to LF (standard for Unix)
+        
+        echo "--- Git Status before diff check ---"
+        git status
+        echo "------------------------------------"
+
+        echo "--- Detailed Git Diff (pokeking-translator/dictionary.json vs HEAD) ---"
+        # Compare the working directory file against the version in HEAD,
+        # specifically showing differences including whitespace if applicable
+        git diff --ignore-space-at-eol -- pokeking-translator/dictionary.json
+        echo "-------------------------------------------------------------------"
+
+        # IMPORTANT: Now, let's use a more robust way to check for changes that Git can see.
+        # git diff-files --quiet: Compares working tree to index (staged changes)
+        # git diff-index --quiet HEAD --: Compares index to HEAD (committed changes)
+        # We need to add the file first to the index, then compare
+        
+        # Add the file to the staging area (index) to ensure Git's internal tracking is updated
+        git add pokeking-translator/dictionary.json
+
+        echo "--- Git Status after git add ---"
+        git status
+        echo "----------------------------------"
+
+        # Now, check if the *staged* changes are different from HEAD
+        # This should correctly detect content differences including line endings after `git add`
         if git diff-index --quiet HEAD --; then
-          echo "No changes detected in dictionary.json. Skipping commit."
+          echo "No changes detected in dictionary.json (after staging). Skipping commit."
         else
-          echo "Changes detected in dictionary.json. Committing and pushing..."
-          git add pokeking-translator/dictionary.json
+          echo "Changes detected in dictionary.json (after staging). Committing and pushing..."
           git commit -m "Automated dictionary update"
           git push
         fi
