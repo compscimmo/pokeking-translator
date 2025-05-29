@@ -3,10 +3,9 @@ name: Update Dictionary on GitHub Pages
 on:
   push:
     branches:
-      - main # Trigger when you push to the main branch (where your dictionary source might be)
-      # - gh-pages # Removed this unless you explicitly want to push directly to gh-pages and trigger from there
+      - main
   schedule:
-    - cron: '25 6 * * *' # Runs daily at 10:25 PM PST
+    - cron: '35 6 * * *' # Runs daily at 10:25 PM PST
   workflow_dispatch: {} # Allows manual triggering from the GitHub Actions UI
 
 jobs:
@@ -17,16 +16,17 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Set up Node.js (Not strictly necessary if only using curl, but good if you add Node.js scripts later)
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18' # Or your preferred Node.js version
-
-    - name: Install dependencies (Not necessary if only using curl)
-      run: npm install # e.g., if you have a package.json for a script
+    # --- REMOVE THESE TWO STEPS ---
+    # - name: Set up Node.js (or Python/Ruby if your script uses them)
+    #   uses: actions/setup-node@v4
+    #   with:
+    #     node-version: '18'
+    #
+    # - name: Install dependencies (if your script needs them)
+    #   run: npm install
+    # ----------------------------
 
     - name: Generate dictionary.json
-      # This curl command is the core of fetching from your Google Apps Script web app
       run: |
         mkdir -p pokeking-translator # Ensure the directory exists
         curl -o pokeking-translator/dictionary.json "https://script.google.com/macros/s/AKfycbwec1juqGwtrBroLbUEz3tACHXrjS7JKjHhPY7C3Puq_uHohV5bZWduQbPzqG1kclVc/exec"
@@ -35,14 +35,6 @@ jobs:
       run: |
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
-        # Check for changes before adding and committing
         git update-index --refresh
         git diff-index --quiet HEAD -- || (git add pokeking-translator/dictionary.json && git commit -m "Automated dictionary update")
         git push
-      # IMPORTANT: Ensure this pushes to the correct branch for GitHub Pages.
-      # If your GitHub Pages serves from 'main' (e.g., /docs folder) or 'gh-pages',
-      # then this push needs to target that specific branch.
-      # By default, git push will push to the branch checked out by actions/checkout, which is 'main'.
-      # If your Pages branch is different (e.g., gh-pages), you'd need:
-      # git push origin HEAD:gh-pages
-      # However, if your Pages branch *is* 'main', then `git push` is fine.
