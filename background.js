@@ -35,10 +35,80 @@ async function getDictionary() {
     return dictionary; // Return an empty object if not found
 }
 
+// --- New Context Menu Logic ---
+
+// Function to create the context menu item
+function createContextMenuItem() {
+    chrome.contextMenus.create({
+        id: "pokekingReportError", // Unique ID for our menu item
+        title: "Pokeking Translator: Report Error/Mistranslation", // Text displayed in the menu
+        contexts: ["selection", "page"], // Show when text is selected or on the page generally
+        // Add a document URL pattern if you only want it on specific sites
+        // documentUrlPatterns: ["*://*.example.com/*"]
+    });
+    console.log("Background: Context menu item 'pokekingReportError' created.");
+}
+
+// Function to be injected into the content script's world to get context for reporting
+// Note: This function runs in the isolated world of the content script, not the background script.
+function getSelectionAndDispatchReportEvent() {
+    let originalChineseText = "";
+    let currentTranslation = "";
+    const selection = window.getSelection();
+
+    if (selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        // Get the text the user selected
+        const selectedText = selection.toString().trim();
+
+        // Try to find if the selected text is part of one of our translated spans
+        const commonAncestor = range.commonAncestorContainer;
+        const closestWrapper = commonAncestor.nodeType === Node.ELEMENT_NODE ?
+                                commonAncestor.closest('.pokeking-translated-wrapper') :
+                                commonAncestor.parentElement ? commonAncestor.parentElement.closest('.pokeking-translated-wrapper') : null;
+
+        if (closestWrapper) {
+            const translatedSpan = closestWrapper.querySelector('.pokeking-translated');
+            if (translatedSpan) {
+                // If it's part of our translation, get the original and translated data
+                originalChineseText = translatedSpan.dataset.original || selectedText;
+                currentTranslation = translatedSpan.textContent || selectedText;
+            } else {
+                // If it's in a wrapper but not the span, something is off, use selected
+                originalChineseText = selectedText;
+                currentTranslation = "Could not identify specific translation for selection.";
+            }
+        } else {
+            // If selection is not within our translated wrapper, it's likely untranslated text
+            originalChineseText = selectedText;
+            currentTranslation = "No translation applied to this selected text.";
+        }
+    } else {
+        // If no text is selected, user clicked on the page. Ask them to provide text.
+        originalChineseText = "Please manually provide the Chinese text.";
+        currentTranslation = "N/A - No text selected.";
+    }
+
+    // Dispatch the custom event to the main content.js script's scope
+    // Your content.js script needs to listen for 'pokekingReportRequest'
+    window.dispatchEvent(new CustomEvent('pokekingReportRequest', {
+        detail: {
+            originalText: originalChineseText,
+            currentTranslatedText: currentTranslation,
+            pageUrl: window.location.href // Current URL
+        }
+    }));
+    console.log("Injected script: Dispatched 'pokekingReportRequest' event.");
+}
+
+
+// --- Event Listeners for the Background Script ---
+
 // Run on extension installation/update
 chrome.runtime.onInstalled.addListener(() => {
     console.log("Background: Extension installed or updated. Fetching dictionary now.");
     fetchAndUpdateDictionary();
+    createContextMenuItem(); // Create the context menu item on install
 });
 
 // Periodically run the update function using chrome.alarms
@@ -60,5 +130,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             sendResponse({ dictionary: dict });
         });
         return true; // Indicates async response
+    }
+});
+
+// Listen for clicks on the context menu item
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+    if (info.menuItemId === "pokekingReportError") {
+        console.log("Background: Context menu 'Report Error' clicked. Executing script.");
+        // Execute the function in the content script's isolated world
+        chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            function: getSelectionAndDispatchReportEvent // Function to inject and run
+        });
     }
 });

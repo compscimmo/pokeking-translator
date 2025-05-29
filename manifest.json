@@ -10,6 +10,7 @@
   },
   "permissions": [
     "activeTab",
+    "contextMenus",
     "scripting",
     "storage",  
     "alarms"    
@@ -17,6 +18,7 @@
   "host_permissions": [
     "*://*.pokeking.icu/*",
     "https://compscimmo.github.io/",
+    "https://script.google.com/*",
     "<all_urls>"
   ],
   "background": {

@@ -1,4 +1,4 @@
-// content.js - Pokeking Translator (Final Version with Injected Script and Background Dictionary)
+// content.js - Pokeking Translator (Final Version with Injected Script, Background Dictionary, and Error Reporting)
 
 // This content script runs in an isolated world, handling UI for translation
 // and communicating with an injected script that overrides native functions.
@@ -18,6 +18,11 @@ async function initializePokekingTranslator() {
     const CUSTOM_ALERT_ID = "pokeking-custom-alert";
     const CUSTOM_ALERT_MESSAGE_CLASS = "pokeking-custom-alert-message";
     const CUSTOM_ALERT_BUTTON_CLASS = "pokeking-custom-alert-button";
+
+    // New constants for error report form
+    const POKEKING_ERROR_FORM_ID = "pokeking-error-report-form";
+    // *** IMPORTANT: YOUR ACTUAL GOOGLE APPS SCRIPT WEB APP URL HAS BEEN REPLACED HERE ***
+    const APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxz6Gx7VSwUWtLMN0qsgzhZujGaxCiXhNrhUXnwl5Waz-3-I5MD6C95V-MobdD6SHZiDQ/exec'; // Populate this with your actual Google Apps Script Web App URL
 
     let isShowingOriginal = false; // Track whether we're showing original or translated text
 
@@ -55,7 +60,7 @@ async function initializePokekingTranslator() {
     console.log("Pokeking Translator: Keyword Regex:", keywordRegex);
 
 
-    // --- Helper Functions (No changes below this line, same as previous version) ---
+    // --- Helper Functions ---
 
     /**
      * Extracts all relevant text nodes from a given root element.
@@ -78,7 +83,10 @@ async function initializePokekingTranslator() {
                 if (style.visibility === "hidden" || style.display === "none") {
                     return NodeFilter.FILTER_REJECT;
                 }
-                if (parent.classList?.contains(POKEKING_WRAPPER_CLASS) || parent.id === CUSTOM_ALERT_ID || parent.closest(`#${CUSTOM_ALERT_ID}`)) {
+                // Exclude our own elements from being processed
+                if (parent.classList?.contains(POKEKING_WRAPPER_CLASS) ||
+                    parent.id === CUSTOM_ALERT_ID || parent.closest(`#${CUSTOM_ALERT_ID}`) ||
+                    parent.id === POKEKING_ERROR_FORM_ID || parent.closest(`#${POKEKING_ERROR_FORM_ID}`)) {
                     return NodeFilter.FILTER_REJECT;
                 }
                 return NodeFilter.FILTER_ACCEPT;
@@ -209,6 +217,10 @@ async function initializePokekingTranslator() {
                         max-width: 80%;
                         box-sizing: border-box;
                     }
+                    .${CUSTOM_ALERT_MESSAGE_CLASS} {
+                        margin-bottom: 20px;
+                        font-size: 1.1em;
+                    }
                     .${CUSTOM_ALERT_BUTTON_CLASS} {
                         background-color: #4CAF50;
                         color: white;
@@ -240,6 +252,193 @@ async function initializePokekingTranslator() {
     }
 
 
+    // --- Error Report Form HTML (Injected) ---
+    const errorReportFormHTML = `
+        <div id="${POKEKING_ERROR_FORM_ID}" style="display: none;">
+            <div class="pokeking-error-form-content">
+                <h3>Report Translation Error</h3>
+
+                <p><strong>Original Chinese Text:</strong> <span id="pokeking-display-chinese-text"></span></p>
+                <label for="pokeking-user-provided-chinese-text">Correct Chinese Text (if different or missing):</label>
+                <input type="text" id="pokeking-user-provided-chinese-text" placeholder="e.g., 请输入正确的中文文本">
+
+                <p><strong>Current Translation:</strong> <span id="pokeking-display-current-translation"></span></p>
+
+                <label for="pokeking-contributor-ign">Your IGN (optional):</label>
+                <input type="text" id="pokeking-contributor-ign" placeholder="e.g., AshKetchum">
+
+                <label for="pokeking-team-used">Your Team (optional):</label>
+                <input type="text" id="pokeking-team-used" placeholder="e.g., Pikachu, Charizard">
+
+                <label for="pokeking-pokeking-code">Pokeking Code (optional):</label>
+                <input type="text" id="pokeking-pokeking-code" placeholder="e.g., PikachuThunderbolt">
+
+                <label for="pokeking-pokemon-region">Pokemon Region:</label>
+                <input type="text" id="pokeking-pokemon-region" readonly>
+
+                <label for="pokeking-elite-four-member">Elite Four Member:</label>
+                <input type="text" id="pokeking-elite-four-member" readonly>
+
+                <label for="pokeking-lead-pokemon">Lead Pokemon:</label>
+                <input type="text" id="pokeking-lead-pokemon" readonly>
+
+                <label for="pokeking-user-suggested-correction">Suggested Correction/Extra Info (optional):</label>
+                <textarea id="pokeking-user-suggested-correction" rows="3" placeholder="e.g., Should be 'Charizard'"></textarea>
+
+                <label for="pokeking-image-upload">Attach Screenshot (optional):</label>
+                <input type="file" id="pokeking-image-upload" accept="image/*">
+
+                <div class="pokeking-error-form-buttons">
+                    <button id="pokeking-submit-error-btn">Submit Report</button>
+                    <button id="pokeking-cancel-report-btn">Cancel</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    /**
+     * Parses the DOM to extract relevant game context (region, E4 member, lead Pokemon).
+     * This now directly reads text content from breadcrumb elements.
+     * @returns {object} An object containing region, eliteFourMember, and leadPokemon.
+     */
+    function parseUrlForContext() {
+        let region = '';
+        let eliteFourMember = '';
+        let leadPokemon = '';
+
+        // Select all breadcrumb items (assuming ol.breadcrumb > li structure)
+        const breadcrumbItems = document.querySelectorAll('ol.breadcrumb > li');
+
+        if (breadcrumbItems.length > 0) {
+            // Helper to safely extract text from a breadcrumb item
+            const extractText = (item) => {
+                // Prioritize the text content of an anchor tag if it exists (for links)
+                // Otherwise, use the overall text content of the list item.
+                const link = item.querySelector('a');
+                return (link ? link.textContent : item.textContent).trim();
+            };
+
+            // Based on the screenshot's breadcrumb: /home / johto / will / 詞彙奇
+            // Index 0: /home
+            // Index 1: johto (Region)
+            // Index 2: will (Elite Four Member)
+            // Index 3: 詞彙奇 (Lead Pokemon)
+
+            if (breadcrumbItems[1]) { // Check if 'johto' exists
+                region = extractText(breadcrumbItems[1]);
+            }
+
+            if (breadcrumbItems[2]) { // Check if 'will' exists
+                eliteFourMember = extractText(breadcrumbItems[2]);
+            }
+
+            if (breadcrumbItems[3]) { // Check if '詞彙奇' exists
+                leadPokemon = extractText(breadcrumbItems[3]);
+            }
+        }
+
+        console.log("Pokeking Translator: Parsed context:", { region, eliteFourMember, leadPokemon });
+        return {
+            region: region,
+            eliteFourMember: eliteFourMember,
+            leadPokemon: leadPokemon
+        };
+    }
+
+
+    /**
+     * Shows the custom error report form.
+     * @param {string} originalChineseText - The Chinese text that needs translation (detected or provided).
+     * @param {string} currentTranslation - The current (possibly incorrect or missing) translation.
+     */
+    function showErrorReportForm(originalChineseText, currentTranslation) {
+        console.log("Pokeking Translator: Showing error report form for:", originalChineseText);
+
+        let errorFormDiv = document.getElementById(POKEKING_ERROR_FORM_ID);
+        if (!errorFormDiv) {
+            // Inject the form HTML if it doesn't exist
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = errorReportFormHTML;
+            errorFormDiv = tempDiv.firstElementChild; // Get the main div
+            document.body.appendChild(errorFormDiv);
+
+            // Attach event listeners for the form buttons after injection
+            document.getElementById('pokeking-submit-error-btn').addEventListener('click', handleSubmitError);
+            document.getElementById('pokeking-cancel-report-btn').addEventListener('click', () => {
+                errorFormDiv.style.display = 'none'; // Hide the form
+            });
+        }
+
+        // Populate the read-only and optional fields
+        document.getElementById('pokeking-display-chinese-text').textContent = originalChineseText;
+        document.getElementById('pokeking-display-current-translation').textContent = currentTranslation || 'N/A';
+
+        // Clear user input fields for a fresh report
+        document.getElementById('pokeking-contributor-ign').value = '';
+        document.getElementById('pokeking-team-used').value = '';
+        document.getElementById('pokeking-pokeking-code').value = '';
+        document.getElementById('pokeking-user-suggested-correction').value = '';
+        document.getElementById('pokeking-image-upload').value = ''; // Clear file input
+        document.getElementById('pokeking-user-provided-chinese-text').value = ''; // Clear new editable field
+
+        // --- Automatically pre-fill based on URL/DOM context ---
+        const urlContext = parseUrlForContext();
+        document.getElementById('pokeking-pokemon-region').value = urlContext.region;
+        document.getElementById('pokeking-elite-four-member').value = urlContext.eliteFourMember;
+        document.getElementById('pokeking-lead-pokemon').value = urlContext.leadPokemon;
+
+        errorFormDiv.style.display = 'flex'; // Show the form
+    }
+
+    // --- Function to handle form submission ---
+    async function handleSubmitError() {
+        // Use the displayed text first, then user-provided text if it exists
+        const chineseTextDisplayed = document.getElementById('pokeking-display-chinese-text').textContent;
+        const userProvidedChineseText = document.getElementById('pokeking-user-provided-chinese-text').value.trim();
+        const finalChineseText = userProvidedChineseText || chineseTextDisplayed;
+
+        const formData = new FormData();
+        formData.append('contributor', document.getElementById('pokeking-contributor-ign').value);
+        formData.append('teamUsed', document.getElementById('pokeking-team-used').value);
+        formData.append('pokekingCode', document.getElementById('pokeking-pokeking-code').value);
+
+        // Get pre-filled values directly from the input fields (even if readonly)
+        formData.append('pokemonRegion', document.getElementById('pokeking-pokemon-region').value);
+        formData.append('eliteFourMember', document.getElementById('pokeking-elite-four-member').value);
+        formData.append('leadPokemon', document.getElementById('pokeking-lead-pokemon').value);
+
+        formData.append('chineseText', finalChineseText); // Use combined text (now optional)
+        formData.append('currentTranslation', document.getElementById('pokeking-display-current-translation').textContent);
+        formData.append('userSuggestedCorrection', document.getElementById('pokeking-user-suggested-correction').value);
+        formData.append('pageUrl', window.location.href);
+
+        const imageFile = document.getElementById('pokeking-image-upload').files[0];
+        if (imageFile) {
+            formData.append('image', imageFile);
+        }
+
+        try {
+            const response = await fetch(APPS_SCRIPT_WEB_APP_URL, {
+                method: 'POST',
+                body: formData, // FormData handles the Content-Type: multipart/form-data header automatically
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                showCustomAlert('Translation error reported successfully! Thank you for your contribution.');
+                document.getElementById(POKEKING_ERROR_FORM_ID).style.display = 'none'; // Hide the form
+            } else {
+                showCustomAlert('Failed to report error: ' + (result.message || 'Unknown error.'));
+                console.error('Error reporting translation:', result);
+            }
+        } catch (error) {
+            showCustomAlert('An error occurred while sending the report. Please check your internet connection.');
+            console.error('Network or fetch error:', error);
+        }
+    }
+
+
     // --- Core Logic: Inject the script that performs the actual alert override into the page's context ---
     const s = document.createElement('script');
     // Ensure browser object is available for getURL
@@ -253,19 +452,28 @@ async function initializePokekingTranslator() {
 
 
     // --- Listen for Custom Events from the Injected Script ---
-    window.addEventListener('pokekingAlertIntercepted', (event) => {
-        const message = event.detail.message;
-        console.log("Pokeking Translator: Received alert from injected script:", message);
-        showCustomAlert(message);
+    window.addEventListener('pokekingReportRequest', (event) => {
+        const { originalText, currentTranslatedText, pageUrl } = event.detail;
+        console.log("Pokeking Translator: Received report request via custom event:", originalText, currentTranslatedText, pageUrl);
+        // Now show your report form with the collected data
+        showErrorReportForm(originalText, currentTranslatedText);
     });
 
-    // --- Main Logic (for static content, unchanged from previous version) ---
+    // This event is dispatched by the function injected from the background script
+    window.addEventListener('pokekingReportRequest', (event) => {
+        const { originalText, currentTranslatedText, pageUrl } = event.detail;
+        console.log("Pokeking Translator: Received report request via custom event:", originalText, currentTranslatedText, pageUrl);
+        // Now show your report form with the collected data
+        showErrorReportForm(originalText, currentTranslatedText);
+    });
+    // --- Main Logic (for static content) ---
 
     function addToggleButton() {
         const btn = document.createElement("button");
-        btn.textContent = "Show Original";
+        btn.textContent = "Show Original"; // Initial text: assume translated is shown, user wants original or to report
         btn.className = POKEKING_BUTTON_CLASS;
 
+        // Inject styles if not already present
         if (!document.getElementById('pokeking-button-styles')) {
             const styleTag = document.createElement('style');
             styleTag.id = 'pokeking-button-styles';
@@ -296,21 +504,23 @@ async function initializePokekingTranslator() {
         }
 
         btn.onclick = () => {
+            // If the error form is currently open, this button should hide it
+            const errorFormDiv = document.getElementById(POKEKING_ERROR_FORM_ID);
+            if (errorFormDiv && errorFormDiv.style.display !== 'none') {
+                errorFormDiv.style.display = 'none';
+                return; // Just hide the form if it's open
+            }
+
             isShowingOriginal = !isShowingOriginal;
             console.log(`Pokeking Translator: Toggle button clicked. isShowingOriginal: ${isShowingOriginal}`);
 
-            // This logic is slightly adjusted:
-            // When switching to original, we just toggle display.
-            // When switching back to translated, we re-run replaceKeywords
-            // to catch any new elements and then toggle display.
             if (isShowingOriginal) {
-                toggleTranslationDisplay();
-                btn.textContent = "Show Translated";
+                toggleTranslationDisplay(); // Show original text
+                btn.textContent = "Show Translated / Report Mistranslation"; // Update button text
             } else {
-                // When switching back to translated, ensure newly added elements are translated
-                replaceKeywords(getAllStaticTextElements()); // Re-run translation on full page
+                replaceKeywords(getAllStaticTextElements()); // Re-run translation on full page for new content
                 toggleTranslationDisplay(); // Apply current display state (translated)
-                btn.textContent = "Show Original";
+                btn.textContent = "Show Original"; // Update button text
             }
         };
 
@@ -337,12 +547,16 @@ async function initializePokekingTranslator() {
                 if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
                     for (const node of mutation.addedNodes) {
                         if (node.nodeType === Node.TEXT_NODE) {
-                            // Ensure parent exists and is not within our alert or wrapper
-                            if (!node.parentNode || node.parentNode.id === CUSTOM_ALERT_ID || node.parentNode.closest(`#${CUSTOM_ALERT_ID}`) || node.parentNode.classList?.contains(POKEKING_WRAPPER_CLASS)) continue;
+                            // Ensure parent exists and is not within our alert, wrapper, or error form
+                            if (!node.parentNode || node.parentNode.id === CUSTOM_ALERT_ID || node.parentNode.closest(`#${CUSTOM_ALERT_ID}`) ||
+                                node.parentNode.id === POKEKING_ERROR_FORM_ID || node.parentNode.closest(`#${POKEKING_ERROR_FORM_ID}`) ||
+                                node.parentNode.classList?.contains(POKEKING_WRAPPER_CLASS)) continue;
                             nodesToTranslate.push(node);
                         } else if (node.nodeType === Node.ELEMENT_NODE) {
                             // Exclude our own elements and their children
-                            if (node.classList?.contains(POKEKING_WRAPPER_CLASS) || node.classList?.contains(POKEKING_BUTTON_CLASS) || node.id === CUSTOM_ALERT_ID || node.closest(`#${CUSTOM_ALERT_ID}`)) {
+                            if (node.classList?.contains(POKEKING_WRAPPER_CLASS) || node.classList?.contains(POKEKING_BUTTON_CLASS) ||
+                                node.id === CUSTOM_ALERT_ID || node.closest(`#${CUSTOM_ALERT_ID}`) ||
+                                node.id === POKEKING_ERROR_FORM_ID || node.closest(`#${POKEKING_ERROR_FORM_ID}`)) {
                                 continue;
                             }
                             nodesToTranslate.push(...getAllStaticTextElements(node));
@@ -370,6 +584,7 @@ async function initializePokekingTranslator() {
 
         addToggleButton();
 
+        // --- Styles for the translation text ---
         if (!document.getElementById('pokeking-translation-text-styles')) {
             const styleTag = document.createElement('style');
             styleTag.id = 'pokeking-translation-text-styles';
@@ -377,6 +592,100 @@ async function initializePokekingTranslator() {
                 .${POKEKING_TRANSLATED_CLASS} {
                     padding: 1px 0;
                     display: inline-block;
+                }
+            `;
+            document.head.appendChild(styleTag);
+        }
+
+        // --- Styles for the Error Report Form ---
+        if (!document.getElementById('pokeking-error-form-styles')) {
+            const styleTag = document.createElement('style');
+            styleTag.id = 'pokeking-error-form-styles';
+            styleTag.textContent = `
+                #${POKEKING_ERROR_FORM_ID} {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0, 0, 0, 0.8);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 10001; /* Higher than custom alert */
+                    font-family: Arial, sans-serif;
+                    color: #eee;
+                }
+                #${POKEKING_ERROR_FORM_ID} .pokeking-error-form-content {
+                    background-color: #222;
+                    padding: 25px;
+                    border-radius: 10px;
+                    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.7);
+                    max-width: 500px;
+                    width: 90%;
+                    box-sizing: border-box;
+                    max-height: 90vh; /* Allow scrolling for long forms */
+                    overflow-y: auto;
+                }
+                #${POKEKING_ERROR_FORM_ID} h3 {
+                    color: #4CAF50;
+                    margin-top: 0;
+                    text-align: center;
+                }
+                #${POKEKING_ERROR_FORM_ID} label {
+                    display: block;
+                    margin-top: 10px;
+                    margin-bottom: 5px;
+                    font-size: 0.9em;
+                    color: #bbb;
+                }
+                #${POKEKING_ERROR_FORM_ID} input[type="text"],
+                #${POKEKING_ERROR_FORM_ID} textarea {
+                    width: calc(100% - 16px);
+                    padding: 8px;
+                    margin-bottom: 10px;
+                    border: 1px solid #555;
+                    border-radius: 4px;
+                    background-color: #333;
+                    color: #eee;
+                    font-size: 1em;
+                }
+                #${POKEKING_ERROR_FORM_ID} input[type="text"][readonly] {
+                    background-color: #444;
+                    color: #aaa;
+                    cursor: default;
+                }
+                #${POKEKING_ERROR_FORM_ID} p {
+                    margin: 5px 0;
+                    font-size: 0.9em;
+                }
+                #${POKEKING_ERROR_FORM_ID} strong {
+                    color: #ccc;
+                }
+                #${POKEKING_ERROR_FORM_ID} .pokeking-error-form-buttons {
+                    display: flex;
+                    justify-content: space-around;
+                    margin-top: 20px;
+                }
+                #${POKEKING_ERROR_FORM_ID} button {
+                    background-color: #4CAF50;
+                    color: white;
+                    padding: 10px 20px;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    font-size: 1em;
+                    transition: background-color 0.2s ease;
+                    min-width: 100px;
+                }
+                #${POKEKING_ERROR_FORM_ID} button:hover {
+                    background-color: #45a049;
+                }
+                #${POKEKING_ERROR_FORM_ID} button#pokeking-cancel-report-btn {
+                    background-color: #f44336;
+                }
+                #${POKEKING_ERROR_FORM_ID} button#pokeking-cancel-report-btn:hover {
+                    background-color: #da190b;
                 }
             `;
             document.head.appendChild(styleTag);

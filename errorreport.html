@@ -1,0 +1,27 @@
+<div id="translationErrorForm">
+  <h3>Report Translation Error</h3>
+
+  <p><strong>Original Chinese Text:</strong> <span id="displayChineseText"></span></p>
+  <p><strong>Current Translation:</strong> <span id="displayCurrentTranslation"></span></p>
+
+  <label for="contributorIgn">Your IGN (optional):</label>
+  <input type="text" id="contributorIgn" placeholder="e.g., AshKetchum">
+
+  <label for="teamUsed">Your Team (optional):</label>
+  <input type="text" id="teamUsed" placeholder="e.g., Pikachu, Charizard">
+
+  <label for="pokekingCode">Pokeking Code (optional):</label>
+  <input type="text" id="pokekingCode" placeholder="e.g., PikachuThunderbolt">
+
+  <label for="pokemonRegion">Pokemon Region:</label>
+  <input type="text" id="pokemonRegion" readonly> <label for="eliteFourMember">Elite Four Member:</label>
+  <input type="text" id="eliteFourMember" readonly> <label for="leadPokemon">Lead Pokemon:</label>
+  <input type="text" id="leadPokemon" readonly> <label for="userSuggestedCorrection">Suggested Correction/Extra Info (optional):</label>
+  <textarea id="userSuggestedCorrection" rows="3" placeholder="e.g., Should be 'Charizard'"></textarea>
+
+  <label for="imageUpload">Attach Screenshot (optional):</label>
+  <input type="file" id="imageUpload" accept="image/*">
+
+  <button id="submitErrorBtn">Submit Report</button>
+  <button id="cancelReportBtn">Cancel</button>
+</div>
