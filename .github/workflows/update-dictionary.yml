@@ -6,7 +6,7 @@ on:
       - main # Trigger when you push to the main branch (where your dictionary source might be)
       # - gh-pages # Removed this unless you explicitly want to push directly to gh-pages and trigger from there
   schedule:
-    - cron: '0 0 * * *' # Runs daily at midnight UTC (adjust as needed)
+    - cron: '20 5 * * *' # Runs daily at 10:20 PM PDT
   workflow_dispatch: {} # Allows manual triggering from the GitHub Actions UI
 
 jobs:
