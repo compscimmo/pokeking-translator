@@ -5,15 +5,15 @@ on:
     branches:
       - main # Trigger when you push to the main branch
   schedule:
-      # Runs daily at 7:05 AM UTC (11:05 PM PST)
-      - cron: '20 7 * * *'
+    # Runs daily at 7:05 AM UTC (11:05 PM PST)
+    - cron: '20 7 * * *'
   workflow_dispatch: {} # Allows manual triggering from the GitHub Actions UI
 
 jobs:
   update_dictionary:
     runs-on: ubuntu-latest
-    permissions: # <--- ADD THIS BLOCK
-      contents: write # <--- AND THIS LINE
+    permissions:
+      contents: write
 
     steps:
     - name: Checkout repository
@@ -21,19 +21,27 @@ jobs:
 
     - name: Generate dictionary.json
       run: |
-        mkdir -p pokeking-translator 
+        set -x # This command prints each command before it's executed, very useful for debugging!
+        mkdir -p pokeking-translator
         curl -o pokeking-translator/dictionary.json "https://script.google.com/macros/s/AKfycbxCamQitK4Jrl2FG4l2oMNhK0orW1I3mtrTvMRoV7JHgc8fQTSoOuiG6Q1D5L-UybfM/exec"
+        
+        # Add a step to print the content of the downloaded file for verification
+        echo "--- Content of downloaded dictionary.json ---"
+        cat pokeking-translator/dictionary.json
+        echo "---------------------------------------------"
 
     - name: Commit and push changes
       run: |
+        set -x # Enable verbose logging for this step
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
-        git update-index --refresh # Checks if there are any changes
-        # Only add and commit if there are actual changes
-        if ! git diff-index --quiet HEAD --; then
+        
+        # Check for changes more verbosely and act based on the exit code
+        if git diff-index --quiet HEAD --; then
+          echo "No changes detected in dictionary.json. Skipping commit."
+        else
+          echo "Changes detected in dictionary.json. Committing and pushing..."
           git add pokeking-translator/dictionary.json
           git commit -m "Automated dictionary update"
           git push
-        else
-          echo "No changes to dictionary.json, skipping commit."
         fi
