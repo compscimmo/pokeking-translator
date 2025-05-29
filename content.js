@@ -21,16 +21,27 @@ async function initializePokekingTranslator() {
 
     let isShowingOriginal = false; // Track whether we're showing original or translated text
 
-    // --- Get the Dictionary from the Background Script ---
-    const DICT = await chrome.runtime.sendMessage({ action: "getDictionary" })
-        .then(response => {
-            console.log("Pokeking Translator: Received dictionary from background script.");
-            return response.dictionary || {}; // Ensure it's an object, even if empty
-        })
-        .catch(error => {
-            console.error("Pokeking Translator: Failed to get dictionary from background:", error);
-            return {}; // Return empty dictionary on error to prevent script from crashing
-        });
+    // --- Get the Dictionary from the Background Script (with retry logic) ---
+    async function getDictionaryWithRetry(retries = 5, delay = 500) {
+        for (let i = 0; i < retries; i++) {
+            try {
+                const response = await chrome.runtime.sendMessage({ action: "getDictionary" });
+                console.log("Pokeking Translator: Received dictionary from background script.");
+                return response.dictionary || {}; // Ensure it's an object, even if empty
+            } catch (error) {
+                if (error.message.includes("Receiving end does not exist") && i < retries - 1) {
+                    console.warn(`Pokeking Translator: Background script not ready, retrying... (${i + 1}/${retries})`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                } else {
+                    console.error("Pokeking Translator: Failed to get dictionary from background:", error);
+                    return {}; // Return empty dictionary on final error
+                }
+            }
+        }
+        return {}; // Should not be reached if retries are exhausted, but as a fallback
+    }
+
+    const DICT = await getDictionaryWithRetry();
 
     if (Object.keys(DICT).length === 0) {
         console.warn("Pokeking Translator: Dictionary is empty or failed to load. Translation will not occur.");
@@ -44,7 +55,7 @@ async function initializePokekingTranslator() {
     console.log("Pokeking Translator: Keyword Regex:", keywordRegex);
 
 
-    // --- Helper Functions ---
+    // --- Helper Functions (No changes below this line, same as previous version) ---
 
     /**
      * Extracts all relevant text nodes from a given root element.

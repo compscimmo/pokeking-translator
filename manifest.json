@@ -10,17 +10,21 @@
   },
   "permissions": [
     "activeTab",
-    "scripting"
+    "scripting",
+    "storage",  
+    "alarms"    
   ],
   "host_permissions": [
-    "*://*.pokeking.icu/*", 
+    "*://*.pokeking.icu/*",
     "https://compscimmo.github.io/",
-    "<all_urls>" 
-
+    "<all_urls>"
   ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
-      "matches": ["*://*.pokeking.icu/*"], 
+      "matches": ["*://*.pokeking.icu/*"],
       "js": ["browser-polyfill.min.js", "content.js"],
       "run_at": "document_start"
     }
@@ -33,8 +37,8 @@
   ],
   "browser_specific_settings": {
     "gecko": {
-    "id": "pokeking-translator-wiley-jassimp@github.com",
-    "strict_min_version": "120.0"
-  }
+      "id": "pokeking-translator-wiley-jassimp@github.com",
+      "strict_min_version": "120.0"
+    }
   }
 }

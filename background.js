@@ -13,7 +13,7 @@ async function fetchAndUpdateDictionary() {
 
         // Store the dictionary in local storage
         await chrome.storage.local.set({ [DICTIONARY_STORAGE_KEY]: dictionary });
-        console.log("Background: Dictionary updated from remote source.");
+        console.log("Background: Dictionary updated from remote source and stored in local storage.");
 
         // Optionally, store the last updated timestamp
         await chrome.storage.local.set({ lastDictionaryUpdate: Date.now() });
@@ -24,8 +24,15 @@ async function fetchAndUpdateDictionary() {
 }
 
 async function getDictionary() {
+    console.log("Background: Retrieving dictionary from storage...");
     const result = await chrome.storage.local.get(DICTIONARY_STORAGE_KEY);
-    return result[DICTIONARY_STORAGE_KEY] || {}; // Return an empty object if not found
+    const dictionary = result[DICTIONARY_STORAGE_KEY] || {};
+    if (Object.keys(dictionary).length === 0) {
+        console.warn("Background: Dictionary not found in local storage or is empty. This might be normal on first run, fetching now.");
+        // Attempt to fetch if not found, but don't block `getDictionary`'s return
+        fetchAndUpdateDictionary();
+    }
+    return dictionary; // Return an empty object if not found
 }
 
 // Run on extension installation/update
@@ -35,7 +42,6 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 // Periodically run the update function using chrome.alarms
-// For Manifest V3, this is the recommended way for periodic tasks.
 chrome.alarms.create('updateDictionary', { periodInMinutes: UPDATE_INTERVAL_MINUTES });
 
 chrome.alarms.onAlarm.addListener((alarm) => {
@@ -48,7 +54,8 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 // Listen for messages from content scripts to provide the dictionary
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "getDictionary") {
-        console.log("Background: Received 'getDictionary' request from content script.");
+        console.log("Background: Received 'getDictionary' request from content script. Sending dictionary.");
+        // We use getDictionary() here which also handles potential initial fetch if storage is empty
         getDictionary().then(dict => {
             sendResponse({ dictionary: dict });
         });
