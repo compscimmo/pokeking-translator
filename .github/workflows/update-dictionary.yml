@@ -23,9 +23,9 @@ jobs:
       run: |
         set -x # This command prints each command before it's executed, very useful for debugging!
         mkdir -p pokeking-translator
-        curl -o pokeking-translator/dictionary.json "https://script.google.com/macros/s/AKfycbxCamQitK4Jrl2FG4l2oMNhK0orW1I3mtrTvMRoV7JHgc8fQTSoOuiG6Q1D5L-UybfM/exec"
+        # *** ADD -L HERE ***
+        curl -L -o pokeking-translator/dictionary.json "https://script.google.com/macros/s/AKfycbxCamQitK4Jrl2FG4l2oMNhK0orW1I3mtrTvMRoV7JHgc8fQTSoOuiG6Q1D5L-UybfM/exec"
         
-        # Add a step to print the content of the downloaded file for verification
         echo "--- Content of downloaded dictionary.json ---"
         cat pokeking-translator/dictionary.json
         echo "---------------------------------------------"
