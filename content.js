@@ -466,6 +466,13 @@ async function initializePokekingTranslator() {
         // Now show your report form with the collected data
         showErrorReportForm(originalText, currentTranslatedText);
     });
+
+    // Add this listener in your content.js file
+    window.addEventListener('pokekingReportRequest', (event) => {
+    console.log("Content Script: Received 'pokekingReportRequest' event from injected script.");
+    const { originalText, currentTranslatedText } = event.detail;
+    showErrorReportForm(originalText, currentTranslatedText);
+    });
     // --- Main Logic (for static content) ---
 
     function addToggleButton() {
@@ -516,7 +523,7 @@ async function initializePokekingTranslator() {
 
             if (isShowingOriginal) {
                 toggleTranslationDisplay(); // Show original text
-                btn.textContent = "Show Translated / Report Mistranslation"; // Update button text
+                btn.textContent = "Show Translated"; // Update button text
             } else {
                 replaceKeywords(getAllStaticTextElements()); // Re-run translation on full page for new content
                 toggleTranslationDisplay(); // Apply current display state (translated)
