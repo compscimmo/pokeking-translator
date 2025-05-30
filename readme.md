@@ -23,12 +23,12 @@ Click "Load unpacked" and select the folder you just downloaded.
 The extension should now be active in your browser.
 
 ## 💻 For Firefox: (credit to @compscimmo)
-1. Instead of download the whole release, you download the sole .xpi here in the repo, or [this link](https://buzzheavier.com/jz0dq09lht0c), or [this](https://buzzheavier.com/3wwzfuujqa42) and [this](https://buzzheavier.com/wv21mgm5dxyj). These are backup links.
+1. Instead of download the whole release, you download the sole .xpi here in the repo, or [this link](https://buzzheavier.com/yp46y0zl1v18), or [this](https://buzzheavier.com/zzp5c90f28xk) and [this](https://buzzheavier.com/b7sr3znz7dsp). These are backup links.
 
 2. Open the XPI file in Firefox.
 
 ## 📱 For Android devices (tablet, mobile) (credit to @compscimmo)
-1. Instead of download the whole release, you download the sole .xpi here in the repo, or [this link](https://buzzheavier.com/jz0dq09lht0c), or [this](https://buzzheavier.com/3wwzfuujqa42) and [this](https://buzzheavier.com/wv21mgm5dxyj). These are backup links.
+1. Instead of download the whole release, you download the sole .xpi here in the repo, or [this link](https://buzzheavier.com/yp46y0zl1v18), or [this](https://buzzheavier.com/zzp5c90f28xk) and [this](https://buzzheavier.com/b7sr3znz7dsp). These are backup links.
 
 2. Download firefox nightly or beta
 
