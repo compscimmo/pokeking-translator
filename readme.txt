@@ -9,20 +9,19 @@ https://github.com/compscimmo/pokeking-translator.git
 I copy and pasted the broswer-polyfill.min.js from here into my own file:
 https://app.unpkg.com/webextension-polyfill@0.12.0/files/dist
 
-V5.0.3
+V4.3.7
 Current version auto updates the dictionary from the github dictionary link.
-also made a report button. right click the mistranslation and go to report error/mistranslation 
-you can just click submit if  you dont want to fill out the sheet or are in a rush
+next update should allow users to customize their own dictionaries if they prefer.
 
 Firefox:
-alternative link for XPI file:
-https://buzzheavier.com/ers8jcy0dx2v
+alternative link:
+4.3.7: https://buzzheavier.com/nvohzosjztbp 
 
 PC:
-1. download pokekingtranslatorwwjt-5.0.3.xpi
-2. open the xpi file in firefox
+1. download pokekingtranslatorwwjt-4.3.7.xpi
+2. open in xpi file in firefox
 android:
-1. download the pokekingtranslatorwwjt-5.0.3.xpi file
+1. download the pokekingtranslatorwwjt-4.3.7.xpi file
 2. download firefox nightly or beta
 3. enabling the debug menu: go to settings > about firefox (or about firefox nightly/beta) and tap the firefox logo five times. this will enable a "debug menu."
 4. go back to the main settings screen, find option install add-on from file and select the xpi file

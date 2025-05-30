@@ -10,19 +10,24 @@ async function initializePokekingTranslator() {
     // --- Constants ---
     const POKEKING_TRANSLATED_CLASS = "pokeking-translated";
     const POKEKING_WRAPPER_CLASS = "pokeking-translated-wrapper";
-    const POKEKING_BUTTON_CLASS = "pokeking-toggle-button";
+    const POKEKING_BUTTON_CLASS = "pokeking-toggle-button"; // Your existing translation button class
     const POKEKING_ORIGINAL_DATA_ATTR = "original";
     const POKEKING_TRANSLATED_DATA_ATTR = "translated";
 
-    // New constants for custom alert
+    // Constants for custom alert
     const CUSTOM_ALERT_ID = "pokeking-custom-alert";
     const CUSTOM_ALERT_MESSAGE_CLASS = "pokeking-custom-alert-message";
     const CUSTOM_ALERT_BUTTON_CLASS = "pokeking-custom-alert-button";
 
-    // New constants for error report form
+    // Constants for error report form
     const POKEKING_ERROR_FORM_ID = "pokeking-error-report-form";
     // *** IMPORTANT: YOUR ACTUAL GOOGLE APPS SCRIPT WEB APP URL HAS BEEN REPLACED HERE ***
     const APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxz6Gx7VSwUWtLMN0qsgzhZujGaxCiXhNrhUXnwl5Waz-3-I5MD6C95V-MobdD6SHZiDQ/exec'; // Populate this with your actual Google Apps Script Web App URL
+
+    // NEW CONSTANTS FOR BUTTONS CONTAINER AND ERROR BUTTON
+    const POKEKING_BUTTONS_CONTAINER_ID = "pokeking-buttons-container";
+    const POKEKING_ERROR_BUTTON_CLASS = "pokeking-error-button";
+    // END NEW CONSTANTS
 
     let isShowingOriginal = false; // Track whether we're showing original or translated text
 
@@ -86,7 +91,8 @@ async function initializePokekingTranslator() {
                 // Exclude our own elements from being processed
                 if (parent.classList?.contains(POKEKING_WRAPPER_CLASS) ||
                     parent.id === CUSTOM_ALERT_ID || parent.closest(`#${CUSTOM_ALERT_ID}`) ||
-                    parent.id === POKEKING_ERROR_FORM_ID || parent.closest(`#${POKEKING_ERROR_FORM_ID}`)) {
+                    parent.id === POKEKING_ERROR_FORM_ID || parent.closest(`#${POKEKING_ERROR_FORM_ID}`) ||
+                    parent.id === POKEKING_BUTTONS_CONTAINER_ID || parent.closest(`#${POKEKING_BUTTONS_CONTAINER_ID}`)) { // Exclude new container
                     return NodeFilter.FILTER_REJECT;
                 }
                 return NodeFilter.FILTER_ACCEPT;
@@ -249,6 +255,36 @@ async function initializePokekingTranslator() {
         messageElement.textContent = translatedMessage;
 
         alertDiv.style.display = 'flex';
+    }
+
+    // Function for temporary user feedback (optional but recommended)
+    function showTemporaryMessage(message) {
+        const messageDiv = document.createElement('div');
+        messageDiv.textContent = message;
+        messageDiv.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 10000;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            pointer-events: none; /* Allows clicks to pass through */
+        `;
+        document.body.appendChild(messageDiv);
+
+        setTimeout(() => {
+            messageDiv.style.opacity = 1;
+        }, 10); // Small delay to trigger transition
+
+        setTimeout(() => {
+            messageDiv.style.opacity = 0;
+            messageDiv.addEventListener('transitionend', () => messageDiv.remove());
+        }, 2000); // Message disappears after 2 seconds
     }
 
 
@@ -466,51 +502,98 @@ async function initializePokekingTranslator() {
         // Now show your report form with the collected data
         showErrorReportForm(originalText, currentTranslatedText);
     });
-
-    // Add this listener in your content.js file
-    window.addEventListener('pokekingReportRequest', (event) => {
-    console.log("Content Script: Received 'pokekingReportRequest' event from injected script.");
-    const { originalText, currentTranslatedText } = event.detail;
-    showErrorReportForm(originalText, currentTranslatedText);
-    });
     // --- Main Logic (for static content) ---
 
-    function addToggleButton() {
-        const btn = document.createElement("button");
-        btn.textContent = "Show Original"; // Initial text: assume translated is shown, user wants original or to report
-        btn.className = POKEKING_BUTTON_CLASS;
-
-        // Inject styles if not already present
-        if (!document.getElementById('pokeking-button-styles')) {
-            const styleTag = document.createElement('style');
-            styleTag.id = 'pokeking-button-styles';
-            styleTag.textContent = `
-                .${POKEKING_BUTTON_CLASS} {
-                    position: fixed;
-                    bottom: 20px;
-                    left: 20px;
-                    z-index: 9999;
-                    padding: 10px 15px;
-                    background: #111;
-                    color: #fff;
-                    border: none;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    font-size: 14px;
-                    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-                    transition: background 0.2s ease, transform 0.1s ease;
-                }
-                .${POKEKING_BUTTON_CLASS}:hover {
-                    background: #333;
-                }
-                .${POKEKING_BUTTON_CLASS}:active {
-                    transform: translateY(1px);
-                }
+    // MODIFIED FUNCTION: addExtensionButtons to handle both buttons and a container
+    function addExtensionButtons() {
+        // Create the main container for both buttons
+        let container = document.getElementById(POKEKING_BUTTONS_CONTAINER_ID);
+        if (!container) {
+            container = document.createElement('div');
+            container.id = POKEKING_BUTTONS_CONTAINER_ID;
+            container.style.cssText = `
+                position: fixed;
+                bottom: 20px; /* Distance from bottom */
+                left: 20px;   /* Distance from left */
+                z-index: 9999; /* Ensure it's on top */
+                display: flex;
+                flex-direction: column; /* Stacks buttons vertically (error above translation) */
+                align-items: flex-start; /* Aligns buttons to the left within the column */
+                gap: 10px; /* Space between buttons */
             `;
-            document.head.appendChild(styleTag);
+            document.body.appendChild(container);
+
+            // Inject styles for the container and buttons
+            if (!document.getElementById('pokeking-buttons-styles')) {
+                const styleTag = document.createElement('style');
+                styleTag.id = 'pokeking-buttons-styles';
+                styleTag.textContent = `
+                    #${POKEKING_BUTTONS_CONTAINER_ID} button {
+                        padding: 10px 15px;
+                        border: none;
+                        border-radius: 8px; /* Consistent rounded corners */
+                        font-size: 14px;
+                        cursor: pointer;
+                        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                        min-width: 120px; /* Ensure consistent width for better alignment */
+                        text-align: center;
+                    }
+                    /* Styling for the Translation Toggle Button */
+                    .${POKEKING_BUTTON_CLASS} {
+                        background-color: #007bff; /* Blue */
+                        color: white;
+                        transition: background 0.2s ease, transform 0.1s ease;
+                    }
+                    .${POKEKING_BUTTON_CLASS}:hover {
+                        background: #0056b3;
+                    }
+                    .${POKEKING_BUTTON_CLASS}:active {
+                        transform: translateY(1px);
+                    }
+
+                    /* Styling for the new Error Report Button */
+                    .${POKEKING_ERROR_BUTTON_CLASS} {
+                        background-color: #dc3545; /* Red */
+                        color: white;
+                        transition: background 0.2s ease, transform 0.1s ease;
+                    }
+                    .${POKEKING_ERROR_BUTTON_CLASS}:hover {
+                        background: #c82333;
+                    }
+                    .${POKEKING_ERROR_BUTTON_CLASS}:active {
+                        transform: translateY(1px);
+                    }
+                `;
+                document.head.appendChild(styleTag);
+            }
         }
 
-        btn.onclick = () => {
+        // Create or get the Translation Toggle Button
+        let translationButton = document.getElementById('myTranslationToggleButton');
+        if (!translationButton) {
+            translationButton = document.createElement("button");
+            translationButton.id = 'myTranslationToggleButton'; // Give it a unique ID
+            translationButton.textContent = "Show Original";
+            translationButton.className = POKEKING_BUTTON_CLASS; // Use your existing class
+            container.appendChild(translationButton);
+        }
+
+        // Create or get the Error Report Button
+        let errorReportButton = document.getElementById('myErrorReportButton');
+        if (!errorReportButton) {
+            errorReportButton = document.createElement("button");
+            errorReportButton.id = 'myErrorReportButton'; // Give it a unique ID
+            errorReportButton.textContent = 'Report Error';
+            errorReportButton.className = POKEKING_ERROR_BUTTON_CLASS; // New class for styling
+            // Append error button above translation button (due to flex-direction: column)
+            container.insertBefore(errorReportButton, translationButton);
+        }
+
+
+        // Attach event listeners for both buttons
+
+        // Translation Button Logic
+        translationButton.onclick = () => {
             // If the error form is currently open, this button should hide it
             const errorFormDiv = document.getElementById(POKEKING_ERROR_FORM_ID);
             if (errorFormDiv && errorFormDiv.style.display !== 'none') {
@@ -523,15 +606,62 @@ async function initializePokekingTranslator() {
 
             if (isShowingOriginal) {
                 toggleTranslationDisplay(); // Show original text
-                btn.textContent = "Show Translated"; // Update button text
+                translationButton.textContent = "Show Translated"; // Update button text
             } else {
                 replaceKeywords(getAllStaticTextElements()); // Re-run translation on full page for new content
                 toggleTranslationDisplay(); // Apply current display state (translated)
-                btn.textContent = "Show Original"; // Update button text
+                translationButton.textContent = "Show Original"; // Update button text
             }
         };
 
-        document.body.appendChild(btn);
+// Error Report Button Logic
+        errorReportButton.onclick = () => {
+            const selection = window.getSelection();
+            let originalChineseText = "";
+            let currentTranslation = "";
+
+            // Check if there is a selection
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                let containingSpan = range.startContainer.parentElement;
+
+                // Traverse up the DOM tree to find the closest .pokeking-translated span
+                while (containingSpan && !containingSpan.classList.contains(POKEKING_TRANSLATED_CLASS) && containingSpan !== document.body) {
+                    containingSpan = containingSpan.parentElement;
+                }
+
+                if (containingSpan && containingSpan.classList.contains(POKEKING_TRANSLATED_CLASS)) {
+                    // If a translated span is found, use its original and translated data attributes
+                    originalChineseText = containingSpan.dataset[POKEKING_ORIGINAL_DATA_ATTR] || "";
+                    currentTranslation = containingSpan.dataset[POKEKING_TRANSLATED_DATA_ATTR] || "";
+                } else {
+                    // No translated span found, use the selected text directly (it might be untranslated or a partial word)
+                    originalChineseText = selection.toString().trim();
+                    // If it's untranslated, the current translation is just the original text itself
+                    currentTranslation = DICT[originalChineseText] || originalChineseText;
+                }
+            }
+
+            // Fallback: If nothing was selected or identified, prompt the user
+            if (!originalChineseText.trim()) {
+                const promptedText = prompt("Please enter the Chinese text to report (or select it on the page):", "");
+                if (promptedText === null) { // User clicked cancel
+                    showTemporaryMessage("Error report cancelled.");
+                    return;
+                }
+                originalChineseText = promptedText.trim();
+                currentTranslation = DICT[originalChineseText] || originalChineseText; // Attempt to translate it if it's a known term
+            }
+
+            // Final check: if after all attempts, originalChineseText is still empty, cancel
+            if (!originalChineseText.trim()) {
+                showTemporaryMessage("No text provided for error report.");
+                return;
+            }
+
+            showErrorReportForm(originalChineseText, currentTranslation);
+            console.log("Pokeking Translator: Error Report button clicked. Original Text:", originalChineseText, "Current Translation:", currentTranslation);
+        };
     }
 
     function initializeTranslationAndObserver() {
@@ -557,13 +687,16 @@ async function initializePokekingTranslator() {
                             // Ensure parent exists and is not within our alert, wrapper, or error form
                             if (!node.parentNode || node.parentNode.id === CUSTOM_ALERT_ID || node.parentNode.closest(`#${CUSTOM_ALERT_ID}`) ||
                                 node.parentNode.id === POKEKING_ERROR_FORM_ID || node.parentNode.closest(`#${POKEKING_ERROR_FORM_ID}`) ||
-                                node.parentNode.classList?.contains(POKEKING_WRAPPER_CLASS)) continue;
+                                node.parentNode.classList?.contains(POKEKING_WRAPPER_CLASS) ||
+                                node.parentNode.id === POKEKING_BUTTONS_CONTAINER_ID || node.parentNode.closest(`#${POKEKING_BUTTONS_CONTAINER_ID}`)) continue; // Exclude new container
                             nodesToTranslate.push(node);
                         } else if (node.nodeType === Node.ELEMENT_NODE) {
                             // Exclude our own elements and their children
                             if (node.classList?.contains(POKEKING_WRAPPER_CLASS) || node.classList?.contains(POKEKING_BUTTON_CLASS) ||
+                                node.classList?.contains(POKEKING_ERROR_BUTTON_CLASS) || // Exclude new error button class
                                 node.id === CUSTOM_ALERT_ID || node.closest(`#${CUSTOM_ALERT_ID}`) ||
-                                node.id === POKEKING_ERROR_FORM_ID || node.closest(`#${POKEKING_ERROR_FORM_ID}`)) {
+                                node.id === POKEKING_ERROR_FORM_ID || node.closest(`#${POKEKING_ERROR_FORM_ID}`) ||
+                                node.id === POKEKING_BUTTONS_CONTAINER_ID || node.closest(`#${POKEKING_BUTTONS_CONTAINER_ID}`)) { // Exclude new container
                                 continue;
                             }
                             nodesToTranslate.push(...getAllStaticTextElements(node));
@@ -589,7 +722,8 @@ async function initializePokekingTranslator() {
             console.error("Pokeking Translator: document.body not found even after DOMContentLoaded!");
         }
 
-        addToggleButton();
+        // Call the function that adds both buttons
+        addExtensionButtons();
 
         // --- Styles for the translation text ---
         if (!document.getElementById('pokeking-translation-text-styles')) {
@@ -605,6 +739,7 @@ async function initializePokekingTranslator() {
         }
 
         // --- Styles for the Error Report Form ---
+        // THIS SECTION WAS ADDED/MOVED TO ENSURE IT'S INCLUDED
         if (!document.getElementById('pokeking-error-form-styles')) {
             const styleTag = document.createElement('style');
             styleTag.id = 'pokeking-error-form-styles';
