@@ -5,8 +5,8 @@ on:
     branches:
       - main # Trigger when you push to the main branch
   schedule:
-    # Runs daily at 7:05 AM UTC (11:05 PM PST)
-    - cron: '20 7 * * *'
+    # update 20 minutes past every hour
+    - cron: '20 * * * *'
   workflow_dispatch: {} # Allows manual triggering from the GitHub Actions UI
 
 jobs:
