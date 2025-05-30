@@ -1,9 +1,3 @@
-// content.js - Pokeking Translator (Final Version with Injected Script, Background Dictionary, and Error Reporting)
-
-// This content script runs in an isolated world, handling UI for translation
-// and communicating with an injected script that overrides native functions.
-
-// Define your main async function
 async function initializePokekingTranslator() {
     console.log("Pokeking Translator: Content script running (Final Version)");
 
@@ -475,23 +469,21 @@ async function initializePokekingTranslator() {
 
 
     // --- Listen for Custom Events from the Injected Script ---
+
+    // ** THIS IS THE NEWLY ADDED LISTENER FOR ALERT INTERCEPTION **
+    window.addEventListener('pokekingAlertIntercepted', (event) => {
+        const message = event.detail.message;
+        console.log("Pokeking Translator: Received alert from injected script:", message);
+        showCustomAlert(message); // Call your custom alert function
+    });
+
+    // Your existing listener for report requests (kept one, removed duplicate)
     window.addEventListener('pokekingReportRequest', (event) => {
         const { originalText, currentTranslatedText, pageUrl } = event.detail;
         console.log("Pokeking Translator: Received report request via custom event:", originalText, currentTranslatedText, pageUrl);
-        // Now show your report form with the collected data
         showErrorReportForm(originalText, currentTranslatedText);
     });
 
-    // This event is dispatched by the function injected from the background script
-    window.addEventListener('pokekingReportRequest', (event) => {
-        const { originalText, currentTranslatedText, pageUrl } = event.detail;
-        console.log("Pokeking Translator: Received report request via custom event:", originalText, currentTranslatedText, pageUrl);
-        // Now show your report form with the collected data
-        showErrorReportForm(originalText, currentTranslatedText);
-    });
-    // --- Main Logic (for static content) ---
-
-    // MODIFIED FUNCTION: addExtensionButtons to handle both buttons and a container
     function addExtensionButtons() {
         // Create the main container for both buttons
         let container = document.getElementById(POKEKING_BUTTONS_CONTAINER_ID);
@@ -601,7 +593,7 @@ async function initializePokekingTranslator() {
             }
         };
 
-// Error Report Button Logic
+    // Error Report Button Logic
         errorReportButton.onclick = () => {
             const selection = window.getSelection();
             let originalChineseText = "";
