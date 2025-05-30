@@ -301,28 +301,20 @@ async function initializePokekingTranslator() {
                 <p><strong>Current Translation:</strong> <span id="pokeking-display-current-translation"></span></p>
 
                 <label for="pokeking-contributor-ign">Your IGN (optional):</label>
-                <input type="text" id="pokeking-contributor-ign" placeholder="e.g., AshKetchum">
+                <input type="text" id="pokeking-contributor-ign" placeholder="e.g., abc">
 
                 <label for="pokeking-team-used">Your Team (optional):</label>
-                <input type="text" id="pokeking-team-used" placeholder="e.g., Pikachu, Charizard">
+                <input type="text" id="pokeking-team-used" placeholder="e.g., wild taste">
 
                 <label for="pokeking-pokeking-code">Pokeking Code (optional):</label>
-                <input type="text" id="pokeking-pokeking-code" placeholder="e.g., PikachuThunderbolt">
+                <input type="text" id="pokeking-pokeking-code" placeholder="e.g., 8E8EBC6ECBC9DEE4FE9BFAEC97A05375">
 
-                <label for="pokeking-pokemon-region">Pokemon Region:</label>
-                <input type="text" id="pokeking-pokemon-region" readonly>
-
-                <label for="pokeking-elite-four-member">Elite Four Member:</label>
-                <input type="text" id="pokeking-elite-four-member" readonly>
-
-                <label for="pokeking-lead-pokemon">Lead Pokemon:</label>
-                <input type="text" id="pokeking-lead-pokemon" readonly>
+                <input type="hidden" id="pokeking-pokemon-region">
+                <input type="hidden" id="pokeking-elite-four-member">
+                <input type="hidden" id="pokeking-lead-pokemon">
 
                 <label for="pokeking-user-suggested-correction">Suggested Correction/Extra Info (optional):</label>
-                <textarea id="pokeking-user-suggested-correction" rows="3" placeholder="e.g., Should be 'Charizard'"></textarea>
-
-                <label for="pokeking-image-upload">Attach Screenshot (optional):</label>
-                <input type="file" id="pokeking-image-upload" accept="image/*">
+                <textarea id="pokeking-user-suggested-correction" placeholder="e.g., Should be 'Charizard'"></textarea>
 
                 <div class="pokeking-error-form-buttons">
                     <button id="pokeking-submit-error-btn">Submit Report</button>
@@ -414,7 +406,6 @@ async function initializePokekingTranslator() {
         document.getElementById('pokeking-team-used').value = '';
         document.getElementById('pokeking-pokeking-code').value = '';
         document.getElementById('pokeking-user-suggested-correction').value = '';
-        document.getElementById('pokeking-image-upload').value = ''; // Clear file input
         document.getElementById('pokeking-user-provided-chinese-text').value = ''; // Clear new editable field
 
         // --- Automatically pre-fill based on URL/DOM context ---
@@ -448,10 +439,6 @@ async function initializePokekingTranslator() {
         formData.append('userSuggestedCorrection', document.getElementById('pokeking-user-suggested-correction').value);
         formData.append('pageUrl', window.location.href);
 
-        const imageFile = document.getElementById('pokeking-image-upload').files[0];
-        if (imageFile) {
-            formData.append('image', imageFile);
-        }
 
         try {
             const response = await fetch(APPS_SCRIPT_WEB_APP_URL, {
