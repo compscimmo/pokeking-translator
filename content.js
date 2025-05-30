@@ -314,7 +314,7 @@ async function initializePokekingTranslator() {
                 <input type="hidden" id="pokeking-lead-pokemon">
 
                 <label for="pokeking-user-suggested-correction">Suggested Correction/Extra Info (optional):</label>
-                <textarea id="pokeking-user-suggested-correction" placeholder="e.g., Should be 'Charizard'"></textarea>
+                <textarea id="pokeking-user-suggested-correction" placeholder="e.g., Should be 'snorlax'"></textarea>
 
                 <div class="pokeking-error-form-buttons">
                     <button id="pokeking-submit-error-btn">Submit Report</button>
