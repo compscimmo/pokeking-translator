@@ -9,9 +9,9 @@ https://github.com/compscimmo/pokeking-translator.git
 I copy and pasted the broswer-polyfill.min.js from here into my own file:
 https://app.unpkg.com/webextension-polyfill@0.12.0/files/dist
 
-V5.1
+V5.2
 Current version auto updates the dictionary from the github dictionary link.
-added a report button to report translation errors or missing translations
+added a report button to report translation errors or missing translations 
 
 Firefox:
 alternative links:
