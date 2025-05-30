@@ -78,6 +78,7 @@ As we are still developing as we play, there are still some placeholders that is
 - First, select the untranslated part, then copy the text. (Ctrl+C on pc, or hold for some seconds on mobile) 
 - Click the report error button. Then paste the content in.
 - click submit.
+- once it is submit, after some minutes, the update translation will take effect onto the extension.
 
 **Each help from you will make it easier to yourself in the future.**  <br/>
 It you have read till this line of the readme, congrats!!! You are now ready to use the extension. 
