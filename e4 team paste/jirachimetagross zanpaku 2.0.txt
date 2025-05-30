@@ -1,4 +1,4 @@
-https://pokepast.es/83f2118e3206df57 
+https://pokepast.es/bc2cd8ee49021bb5
 
 6E7B4D48DF6146F6ADF4520C3ECAA3ED 
 
@@ -7,7 +7,7 @@ https://pokepast.es/83f2118e3206df57
 Jirachi @ Choice Scarf  
 Ability: Serene Grace  
 Tera Type: Steel  
-EVs: 238 HP / 156 SpD / 116 Spe  
+EVs: 238 HP / 156 SpA / 116 Spe  
 Modest Nature  
 IVs: 0 Atk  
 - Trick  (max. pp)
