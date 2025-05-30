@@ -321,9 +321,6 @@ async function initializePokekingTranslator() {
                 <label for="pokeking-user-suggested-correction">Suggested Correction/Extra Info (optional):</label>
                 <textarea id="pokeking-user-suggested-correction" rows="3" placeholder="e.g., Should be 'Charizard'"></textarea>
 
-                <label for="pokeking-image-upload">Attach Screenshot (optional):</label>
-                <input type="file" id="pokeking-image-upload" accept="image/*">
-
                 <div class="pokeking-error-form-buttons">
                     <button id="pokeking-submit-error-btn">Submit Report</button>
                     <button id="pokeking-cancel-report-btn">Cancel</button>
