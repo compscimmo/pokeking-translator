@@ -23,9 +23,7 @@ Click "Load unpacked" and select the folder you just downloaded.
 The extension should now be active in your browser.
 
 ## 💻 For Firefox: (credit to @compscimmo)
-1. Instead of download the whole release, you download the sole .xpi here in the repo, or [this link](https://buzzheavier.com/bbfpzbdhev3j), or [this](https://buzzheavier.com/5vq50x65gr6a) and [this](https://buzzheavier.com/thy4gm7f1y2m). These are backup links.
-
-2. Open the XPI file in Firefox.
+1. go to this link https://addons.mozilla.org/en-US/firefox/addon/pokeking-translator/ 
 
 ## 📱 For Android devices (tablet, mobile) (credit to @compscimmo)
 1. Instead of download the whole release, you download the sole .xpi here in the repo, or [this link](https://buzzheavier.com/bbfpzbdhev3j), or [this](https://buzzheavier.com/5vq50x65gr6a) and [this](https://buzzheavier.com/thy4gm7f1y2m). These are backup links.
