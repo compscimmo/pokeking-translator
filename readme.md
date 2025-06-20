@@ -22,19 +22,8 @@ Click "Load unpacked" and select the folder you just downloaded.
 
 The extension should now be active in your browser.
 
-## 💻 For Firefox: (credit to @compscimmo)
-1. Instead of download the whole release, you download the sole .xpi here in the repo, or [this link](https://buzzheavier.com/bbfpzbdhev3j), or [this](https://buzzheavier.com/5vq50x65gr6a) and [this](https://buzzheavier.com/thy4gm7f1y2m). These are backup links.
-
-2. Open the XPI file in Firefox.
-
-## 📱 For Android devices (tablet, mobile) (credit to @compscimmo)
-1. Instead of download the whole release, you download the sole .xpi here in the repo, or [this link](https://buzzheavier.com/bbfpzbdhev3j), or [this](https://buzzheavier.com/5vq50x65gr6a) and [this](https://buzzheavier.com/thy4gm7f1y2m). These are backup links.
-
-2. Download firefox nightly or beta
-
-3. Enabling the debug menu: go to settings > about firefox (or about firefox nightly/beta) and tap the firefox logo five times. this will enable a "debug menu."
-
-4. Go back to the main settings screen, find option install add-on from file and select the xpi file.
+## 💻 For Firefox (works for mobile): (credit to @compscimmo)
+1. go to this link https://addons.mozilla.org/en-US/firefox/addon/pokeking-translator/ 
 
 ## 📱 For IOS devices
 
